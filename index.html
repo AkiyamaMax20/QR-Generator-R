@@ -157,9 +157,9 @@
             min-height: 300px;
         }
 
-        /* 确保 canvas 元素自身没有额外的边距或填充影响布局 */
+        /* Ensure the canvas element itself has no extra margins or padding affecting layout */
         #qrcode {
-            margin: 1rem 0; /* 保持与之前 div 的间距一致 */
+            margin: 1rem 0; /* Keep consistent spacing with the previous div */
         }
 
         .action-buttons {
@@ -281,7 +281,7 @@
                 grid-template-columns: 1fr;
                 gap: 1rem;
             }
-            
+           
             .card {
                 padding: 1.5rem;
             }
@@ -293,26 +293,26 @@
                 --dark: #f8f9fa;
                 --light: #1a1a2e;
             }
-            
+           
             body {
                 background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
                 color: white;
             }
-            
+           
             .card, .qrcode-container, .input-field {
                 background-color: #16213e;
                 color: white;
                 border-color: #2d3748;
             }
-            
+           
             .input-field {
                 background-color: #1e293b;
             }
-            
+           
             .input-field:focus {
                 background-color: #16213e;
             }
-            
+           
             .history-item:hover {
                 background-color: #1e293b;
             }
@@ -326,7 +326,7 @@
                 <h1><i class="fas fa-qrcode"></i> Smart Video QR Generator</h1>
                 <p>Create QR codes that jump directly to specific timestamps in videos</p>
             </div>
-            
+           
             <div class="platform-badges">
                 <span class="badge badge-youtube">YouTube</span>
                 <span class="badge badge-niconico">Niconico</span>
@@ -334,38 +334,38 @@
                 <span class="badge badge-dmm">DMM</span>
                 <span class="badge badge-generic">Other</span>
             </div>
-            
+           
             <div class="form-group">
                 <label for="url">Video URL</label>
                 <input type="url" id="url" class="input-field" placeholder="http://youtube.com/watch?v=dQw4w9WgXcQ" autofocus>
             </div>
-            
+           
             <div class="form-group">
                 <label for="time">Start Time</label>
                 <input type="text" id="time" class="input-field" placeholder="1:23 or 83 seconds">
             </div>
-            
+           
             <button id="generate-btn" class="btn">
                 <i class="fas fa-bolt"></i> Generate QR Code
             </button>
-            
+           
             <div class="form-group" style="margin-top: 1rem;">
                 <label for="custom-text">Custom Label (Optional)</label>
                 <input type="text" id="custom-text" class="input-field" placeholder="E.g. 'Tutorial Step 3'">
             </div>
-            
+           
             <div class="loading" id="loading">
                 <div class="spinner"></div>
                 <p>Generating QR Code...</p>
             </div>
         </div>
-        
+       
         <div class="card">
             <div class="qrcode-container" id="output-section">
                 <canvas id="qrcode"></canvas> <p id="qr-instruction" style="color: #64748b; text-align: center;">
                     Your QR code will appear here
                 </p>
-                
+               
                 <div class="action-buttons" id="action-buttons" style="display: none;">
                     <button id="download-btn" class="btn btn-secondary">
                         <i class="fas fa-download"></i> Download
@@ -374,19 +374,19 @@
                         <i class="fas fa-copy"></i> Copy Link
                     </button>
                 </div>
-                
+               
                 <div id="qr-info" style="margin-top: 1rem; text-align: center;"></div>
             </div>
         </div>
-        
+       
         <div class="card history-panel" style="grid-column: span 2; display: none;" id="history-panel">
             <h3 style="margin-bottom: 1rem;"><i class="fas fa-history"></i> Generation History</h3>
             <div id="history-list"></div>
         </div>
     </div>
-    
+   
     <div class="toast" id="toast"></div>
-    
+   
     <script>
         // DOM Elements
         const urlInput = document.getElementById('url');
@@ -395,7 +395,7 @@
         const generateBtn = document.getElementById('generate-btn');
         const downloadBtn = document.getElementById('download-btn');
         const copyBtn = document.getElementById('copy-btn');
-        // 确保 qrcodeCanvas 引用的是 <canvas> 元素
+        // Ensure qrcodeCanvas references the <canvas> element
         const qrcodeCanvas = document.getElementById('qrcode');
         const qrInstruction = document.getElementById('qr-instruction');
         const actionButtons = document.getElementById('action-buttons');
@@ -404,11 +404,11 @@
         const toast = document.getElementById('toast');
         const historyPanel = document.getElementById('history-panel');
         const historyList = document.getElementById('history-list');
-        
+       
         // State
         let currentQRData = null;
         let generationHistory = JSON.parse(localStorage.getItem('qrHistory')) || [];
-        
+       
         // Initialize
         function init() {
             // Load history if exists
@@ -416,43 +416,43 @@
                 historyPanel.style.display = 'block';
                 renderHistory();
             }
-            
+           
             // Set up event listeners
             generateBtn.addEventListener('click', generateQR);
             downloadBtn.addEventListener('click', downloadQR);
             copyBtn.addEventListener('click', copyLink);
-            
+           
             // Auto-detect platform from URL
             urlInput.addEventListener('input', detectPlatform);
-            
+           
             // Allow Enter key to generate
             timeInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') generateQR();
             });
-            customTextInput.addEventListener('keypress', (e) => { // 添加对 custom-text 的回车支持
+            customTextInput.addEventListener('keypress', (e) => { // Add Enter support for custom-text
                 if (e.key === 'Enter') generateQR();
             });
         }
-        
+       
         // Platform detection
         function detectPlatform() {
             const url = urlInput.value;
             const badges = document.querySelectorAll('.badge');
-            
+           
             // Reset all badges
             badges.forEach(badge => {
                 badge.style.opacity = '0.5';
                 badge.style.transform = 'scale(0.95)';
             });
-            
+           
             // Highlight matching platform
-            // 注意：youtube.com 和 /2 看起来像是您在尝试绕过某种限制，
-            // 通常 YouTube 链接是 https://www.youtube.com/watch?v=... 或 https://youtu.be/...
-            // 这里的判断逻辑应该基于真实的 YouTube 域名
+            // Note: youtube.com and /2 look like you're trying to bypass some kind of restriction,
+            // Normally YouTube links are https://www.youtube.com/watch?v=... or https://youtu.be/...
+            // The logic here should be based on the actual YouTube domain
             if (url.includes('youtube.com') || url.includes('youtu.be')) {
                 document.querySelector('.badge-youtube').style.opacity = '1';
                 document.querySelector('.badge-youtube').style.transform = 'scale(1.05)';
-            } else if (url.includes('nicovideo.jp') || url.includes('niconico.jp')) { // 修正 Niconico 域名判断
+            } else if (url.includes('nicovideo.jp') || url.includes('niconico.jp')) { // Correct Niconico domain check
                 document.querySelector('.badge-niconico').style.opacity = '1';
                 document.querySelector('.badge-niconico').style.transform = 'scale(1.05)';
             } else if (url.includes('abema.tv')) {
@@ -461,32 +461,32 @@
             } else if (url.includes('dmm.co.jp')) {
                 document.querySelector('.badge-dmm').style.opacity = '1';
                 document.querySelector('.badge-dmm').style.transform = 'scale(1.05)';
-            } else if (url.length > 10) { // 长度大于10才认为是通用链接
+            } else if (url.length > 10) { // Consider it a generic link only if longer than 10 chars
                 document.querySelector('.badge-generic').style.opacity = '1';
                 document.querySelector('.badge-generic').style.transform = 'scale(1.05)';
             }
         }
-        
+       
         // Generate QR Code
         function generateQR() {
             const videoUrl = urlInput.value.trim();
             const timestamp = timeInput.value.trim();
             const customText = customTextInput.value.trim();
-            
+           
             if (!videoUrl || !timestamp) {
-                showToast('请输入视频URL和时间', 'warning');
+                showToast('Please enter both video URL and time', 'warning');
                 return;
             }
 
-            if (!qrcodeCanvas) { // 再次检查 canvas 元素是否存在
-                showToast('无法找到 QR 码绘制区域 (Canvas Element)', 'error');
+            if (!qrcodeCanvas) { // Check again if the canvas element exists
+                showToast('Cannot find QR code drawing area (Canvas Element)', 'error');
                 console.error("QR code canvas element not found!");
                 return;
             }
-            
+           
             // Show loading
             loadingIndicator.style.display = 'flex';
-            
+           
             // Process in small delay for better UX
             setTimeout(() => {
                 try {
@@ -499,75 +499,75 @@
                             seconds = parts[1];
                             totalSeconds = minutes * 60 + seconds;
                         } else {
-                            throw new Error('时间格式不正确。请使用 M:SS 或以秒为单位的数字。');
+                            throw new Error('Incorrect time format. Use M:SS or number in seconds.');
                         }
                     } else {
                         totalSeconds = parseInt(timestamp);
                         if (isNaN(totalSeconds) || totalSeconds < 0) {
-                            throw new Error('时间格式不正确。请使用 M:SS 或以秒为单位的数字。');
+                            throw new Error('Incorrect time format. Use M:SS or number in seconds.');
                         }
                         minutes = Math.floor(totalSeconds / 60);
                         seconds = totalSeconds % 60;
                     }
-                    
+                   
                     // Generate platform-specific URL
                     let qrData;
-                    // 更正 YouTube 链接的判断，使用实际域名
+                    // Correct YouTube link check, use actual domain
                     if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
-                        // 移除已有的时间戳参数，避免重复
+                        // Remove existing timestamp parameters to avoid duplicates
                         let cleanUrl = videoUrl.split('&t=')[0].split('?t=')[0];
-                        qrData = `${cleanUrl}&t=${totalSeconds}`; // YouTube 使用 &t= 或 ?t=
-                    } else if (videoUrl.includes('nicovideo.jp')) { // 确保是 niconico.jp
-                        // Niconico 使用 # from seconds
+                        qrData = `${cleanUrl}&t=${totalSeconds}`; // YouTube uses &t= or ?t=
+                    } else if (videoUrl.includes('nicovideo.jp')) { // Ensure it's niconico.jp
+                        // Niconico uses # from seconds
                         qrData = `${videoUrl}#${totalSeconds}`;
                     } else if (videoUrl.includes('abema.tv')) {
-                        // AbemaTV 使用 position parameter
-                        // 考虑 URL 中是否已有查询参数
+                        // AbemaTV uses position parameter
+                        // Consider if the URL already has query parameters
                         qrData = videoUrl.includes('?') ? `${videoUrl}&position=${totalSeconds}` : `${videoUrl}?position=${totalSeconds}`;
                     } else if (videoUrl.includes('dmm.co.jp')) {
-                        // DMM 使用 t parameter (seconds)
+                        // DMM uses t parameter (seconds)
                         qrData = videoUrl.includes('?') ? `${videoUrl}&t=${totalSeconds}` : `${videoUrl}?t=${totalSeconds}`;
                     } else {
-                        // Generic fallback (通用回退), 移除已有的锚点，避免重复
+                        // Generic fallback, remove existing anchors to avoid duplicates
                         let cleanUrl = videoUrl.split('#')[0];
                         qrData = `${cleanUrl}#t=${totalSeconds}`;
                     }
-                    
+                   
                     currentQRData = qrData;
-                    
+                   
                     // Clear previous QR
-                    // 对于 canvas，不需要清空 innerHTML，而是清空画布
+                    // For canvas, don't clear innerHTML, clear the canvas
                     const context = qrcodeCanvas.getContext('2d');
                     context.clearRect(0, 0, qrcodeCanvas.width, qrcodeCanvas.height);
-                    
+                   
                     qrInstruction.style.display = 'none';
-                    
+                   
                     // Generate new QR
-                    QRCode.toCanvas(qrcodeCanvas, qrData, { 
+                    QRCode.toCanvas(qrcodeCanvas, qrData, {
                         width: 200,
                         color: {
                             dark: '#1a1a2e',
-                            light: '#ffffff00' // 完全透明的背景色
+                            light: '#ffffff00' // Fully transparent background
                         }
                     }, (err) => {
                         loadingIndicator.style.display = 'none';
-                        
+                       
                         if (err) {
-                            showToast('生成失败: ' + err.message, 'error'); // 显示错误消息
+                            showToast('Generation failed: ' + err.message, 'error'); // Show error message
                             console.error("QR Code generation error:", err);
                             return;
                         }
-                        
+                       
                         // Show actions
                         actionButtons.style.display = 'flex';
-                        
+                       
                         // Update info
-                        const timeLabel = minutes ? `${minutes}分 ${seconds}秒` : `${seconds}秒`;
-                        let infoText = `跳转到 ${timeLabel}`;
+                        const timeLabel = minutes ? `${minutes}m ${seconds}s` : `${seconds}s`;
+                        let infoText = `Jumps to ${timeLabel}`;
                         if (customText) infoText += ` | ${customText}`;
-                        
+                       
                         qrInfo.innerHTML = infoText;
-                        
+                       
                         // Add to history
                         addToHistory({
                             url: videoUrl,
@@ -576,69 +576,69 @@
                             customText: customText,
                             date: new Date().toISOString()
                         });
-                        
-                        showToast('QR码已生成！', 'success');
+                       
+                        showToast('QR Code generated!', 'success');
                     });
                 } catch (e) {
                     loadingIndicator.style.display = 'none';
-                    showToast('错误: ' + e.message, 'error');
+                    showToast('Error: ' + e.message, 'error');
                     console.error("Error during QR generation setup:", e);
                 }
             }, 300);
         }
-        
+       
         // Download QR Code
         function downloadQR() {
             if (!currentQRData) return;
-            
-            const canvas = qrcodeCanvas; // 直接使用 qrcodeCanvas
+           
+            const canvas = qrcodeCanvas; // Use qrcodeCanvas directly
             const link = document.createElement('a');
             link.download = 'video_qr.png';
             link.href = canvas.toDataURL('image/png');
             link.click();
-            
-            showToast('开始下载', 'success');
+           
+            showToast('Download started', 'success');
         }
-        
+       
         // Copy Link to Clipboard
         function copyLink() {
             if (!currentQRData) return;
-            
+           
             navigator.clipboard.writeText(currentQRData)
-                .then(() => showToast('链接已复制到剪贴板！', 'success'))
-                .catch(err => showToast('复制失败: ' + err, 'error'));
+                .then(() => showToast('Link copied to clipboard!', 'success'))
+                .catch(err => showToast('Copy failed: ' + err, 'error'));
         }
-        
+       
         // History Management
         function addToHistory(item) {
             generationHistory.unshift(item);
             if (generationHistory.length > 10) {
                 generationHistory = generationHistory.slice(0, 10);
             }
-            
+           
             localStorage.setItem('qrHistory', JSON.stringify(generationHistory));
             renderHistory();
-            
-            if (generationHistory.length === 1) { // 首次添加历史记录时显示面板
+           
+            if (generationHistory.length === 1) { // Show panel on first history item
                 historyPanel.style.display = 'block';
             }
         }
-        
+       
         function renderHistory() {
             historyList.innerHTML = '';
-            
+           
             generationHistory.forEach((item, index) => {
                 const historyItem = document.createElement('div');
                 historyItem.className = 'history-item';
-                
-                const timeLabel = item.time.includes(':') ? item.time : `${item.time}秒`;
+               
+                const timeLabel = item.time.includes(':') ? item.time : `${item.time}s`;
                 let domain = '';
                 try {
                     domain = new URL(item.url).hostname.replace('www.', '');
                 } catch (e) {
-                    domain = '无效链接'; // 处理无效URL的情况
+                    domain = 'Invalid Link'; // Handle invalid URL case
                 }
-                
+               
                 historyItem.innerHTML = `
                     <div>
                         <strong>${item.customText || 'QR ' + (index + 1)}</strong>
@@ -646,30 +646,30 @@
                             ${domain} @ ${timeLabel}
                         </div>
                     </div>
-                    <button class="btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;" 
+                    <button class="btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;"
                             onclick="loadFromHistory('${index}')">
                         <i class="fas fa-redo"></i>
                     </button>
                 `;
-                
+               
                 historyList.appendChild(historyItem);
             });
         }
-        
+       
         function loadFromHistory(index) {
             const item = generationHistory[index];
             urlInput.value = item.url;
             timeInput.value = item.time;
             customTextInput.value = item.customText || '';
-            detectPlatform(); // 重新检测平台
-            generateQR(); // 重新生成 QR 码
+            detectPlatform(); // Re-detect platform
+            generateQR(); // Re-generate QR code
         }
-        
+       
         // Toast notifications
         function showToast(message, type = 'info') {
             toast.textContent = message;
             toast.className = 'toast'; // Reset classes
-            
+           
             // Set color based on type
             switch (type) {
                 case 'success':
@@ -684,21 +684,21 @@
                 default:
                     toast.style.backgroundColor = 'var(--dark)';
             }
-            
+           
             // Show toast
             setTimeout(() => {
                 toast.classList.add('show');
-                
+               
                 // Hide after 3 seconds
                 setTimeout(() => {
                     toast.classList.remove('show');
                 }, 3000);
             }, 100);
         }
-        
+       
         // Make loadFromHistory available globally
         window.loadFromHistory = loadFromHistory;
-        
+       
         // Initialize app
         init();
     </script>
